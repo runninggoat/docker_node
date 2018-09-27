@@ -1,0 +1,13 @@
+version: "2"
+services:
+  node_web:
+    container_name: node_web
+    build: ./
+    image: "node_web:latest"
+    working_dir: /usr/src/app
+    volumes:
+      - ./app:/usr/src/app
+    ports: 
+        - "8888:8888"
+    # command: "node app.js"
+    command: "npm run dev"
