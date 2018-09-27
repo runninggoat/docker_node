@@ -13,30 +13,12 @@ module.exports = {
         "sourceType": "module"
     },
     "rules": {
-        "indent": [
-            "warn",
-            "tab",
-            { "SwitchCase": 1 }
-        ],
-        "quotes": [
-            "warn",
-            "double"
-        ],
-        "semi": [
-            "error",
-            "always"
-        ],
-        "no-var": [
-            "error"
-        ],
-        "no-console": [
-            "off"
-        ],
-        "no-unused-vars": [
-            "warn"
-        ],
-        "no-mixed-spaces-and-tabs": [
-            "warn"
-        ]
+      'comma-dangle': ["error", {
+        "arrays": "ignore",
+        "objects": "ignore",
+        "imports": "ignore",
+        "exports": "ignore",
+        "functions": "ignore",
+      }],
     }
 };

@@ -17,8 +17,9 @@
     "moleculer-repl": "^0.5.0"
   },
   "dependencies": {
+    "moleculer": "^0.13.0",
     "moleculer-web": "^0.8.0",
-    "moleculer": "^0.13.0"
+    "nodemailer": "^4.6.8"
   },
   "engines": {
     "node": ">= 8.x.x"
