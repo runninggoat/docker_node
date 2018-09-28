@@ -4,7 +4,8 @@ const ApiGateway = require('moleculer-web')
 
 module.exports = {
   name: 'api',
-  mixins: [ApiGateway, ],
+  version: 1,
+  mixins: [ApiGateway],
 
   // More info about settings: https://moleculer.services/docs/0.13/moleculer-web.html
   settings: {
@@ -23,11 +24,12 @@ module.exports = {
           'POST user/create': 'user.create',
           'POST user/mailStatus': 'user.mailStatus',
           'POST userdb/listUsers': 'userdb.listUsers',
+          'POST user/version': 'user.version',
         },
         // Use bodyparser module to parse POST request body, otherwise you cannot get params of POST
         bodyParsers: {
           json: true,
-          urlencoded: { extended: true, },
+          urlencoded: { extended: true },
         },
       },
     ],

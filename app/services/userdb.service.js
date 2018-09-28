@@ -3,7 +3,7 @@ const DbService = require('moleculer-db')
 module.exports = {
   name: 'userdb',
 
-  mixins: [DbService, ],
+  mixins: [DbService],
 
   /**
    * Service settings
@@ -43,11 +43,14 @@ module.exports = {
       },
     },
     listUsers: {
-      handler (ctx) {
-        this.broker.call('userdb.list').then(res => {
-          console.log(res)
-          return res
+      async handler (ctx) {
+        let result = []
+        await this.broker.call('userdb.list').then(res => {
+          this.logger.info(res)
+          result = res
         })
+        console.log(result)
+        return result
       },
     },
   },

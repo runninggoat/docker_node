@@ -1,7 +1,7 @@
 // const base64 = require('js-base64').Base64
 const request = require('request')
 const md5 = require('md5')
-const { ValidationError, ServiceNotAvailableError, RequestRejectedError, } = require('moleculer').Errors
+const { ValidationError, ServiceNotAvailableError, RequestRejectedError } = require('moleculer').Errors
 
 module.exports = {
   name: 'user',
@@ -59,8 +59,16 @@ module.exports = {
         if (!mailTaskId) {
           throw new ValidationError('Cannot find E-mail record.')
         }
+        if (!this.settings.mailTask[mailTaskId]) {
+          throw new RequestRejectedError('No sending task can be found.')
+        }
         return this.generateMailTaskStatusResp(mailTaskId)
       },
+    },
+    version (ctx) {
+      return {
+        version: 'v1.0',
+      }
     },
   },
 
@@ -119,7 +127,7 @@ module.exports = {
         secretkey: secretkey,
         destination: destination,
       }
-      request.post({  url: url, form: requestData,  }, (error, response, body) => {
+      request.post({  url: url, form: requestData }, (error, response, body) => {
         if (!error && response.statusCode == 200) {
           console.log('sending email successfully')
           console.log(body)
