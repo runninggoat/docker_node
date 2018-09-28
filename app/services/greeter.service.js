@@ -1,81 +1,68 @@
-"use strict";
+'use strict'
 
 module.exports = {
-	name: "greeter",
+  name: 'greeter',
 
-	/**
-	 * Service settings
-	 */
-	settings: {
+  /**
+   * Service settings
+   */
+  settings: {},
 
-	},
+  /**
+   * Service dependencies
+   */
+  dependencies: [],
 
-	/**
-	 * Service dependencies
-	 */
-	dependencies: [],	
+  /**
+   * Actions
+   */
+  actions: {
+    /**
+     * Say a 'Hello'
+     *
+     * @returns
+     */
+    hello() {
+      return 'Hello Moleculer'
+    },
 
-	/**
-	 * Actions
-	 */
-	actions: {
+    /**
+     * Welcome a username
+     *
+     * @param {String} name - User name
+     */
+    welcome: {
+      params: {
+        name: 'string',
+      },
+      handler(ctx) {
+        return `Welcome, ${ctx.params.name}`
+      },
+    },
+  },
 
-		/**
-		 * Say a 'Hello'
-		 *
-		 * @returns
-		 */
-		hello() {
-			return "Hello Moleculer";
-		},
+  /**
+   * Events
+   */
+  events: {},
 
-		/**
-		 * Welcome a username
-		 *
-		 * @param {String} name - User name
-		 */
-		welcome: {
-			params: {
-				name: "string"
-			},
-			handler(ctx) {
-				return `Welcome, ${ctx.params.name}`;
-			}
-		}
-	},
+  /**
+   * Methods
+   */
+  methods: {},
 
-	/**
-	 * Events
-	 */
-	events: {
+  /**
+   * Service created lifecycle event handler
+   */
+  created() {},
 
-	},
+  /**
+   * Service started lifecycle event handler
+   */
+  started() {},
 
-	/**
-	 * Methods
-	 */
-	methods: {
-
-	},
-
-	/**
-	 * Service created lifecycle event handler
-	 */
-	created() {
-
-	},
-
-	/**
-	 * Service started lifecycle event handler
-	 */
-	started() {
-
-	},
-
-	/**
-	 * Service stopped lifecycle event handler
-	 */
-	stopped() {
-
-	}
-};
+  /**
+   * Service stopped lifecycle event handler
+   */
+  stopped() {},
+}
