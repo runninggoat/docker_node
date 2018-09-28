@@ -1,16 +1,16 @@
-'use strict'
+"use strict";
 
 // More info about options: https://moleculer.services/docs/0.13/broker.html#Broker-options
 module.exports = {
-  namespace: '',
+  namespace: "",
   nodeID: null,
 
   logger: true,
-  logLevel: 'info',
-  logFormatter: 'default',
+  logLevel: "info",
+  logFormatter: "default",
   logObjectPrinter: null,
 
-  serializer: 'JSON',
+  serializer: "JSON",
 
   requestTimeout: 10 * 1000,
   retryPolicy: {
@@ -19,7 +19,7 @@ module.exports = {
     delay: 100,
     maxDelay: 1000,
     factor: 2,
-    check: err => err && !!err.retryable,
+    check: err => err && !!err.retryable
   },
 
   maxCallLevel: 100,
@@ -28,14 +28,14 @@ module.exports = {
 
   tracking: {
     enabled: false,
-    shutdownTimeout: 5000,
+    shutdownTimeout: 5000
   },
 
   disableBalancer: false,
 
   registry: {
-    strategy: 'RoundRobin',
-    preferLocal: true,
+    strategy: "RoundRobin",
+    preferLocal: true
   },
 
   circuitBreaker: {
@@ -44,13 +44,13 @@ module.exports = {
     windowTime: 60,
     minRequestCount: 20,
     halfOpenTime: 10 * 1000,
-    check: err => err && err.code >= 500,
+    check: err => err && err.code >= 500
   },
 
   bulkhead: {
     enabled: false,
     concurrency: 10,
-    maxQueueSize: 100,
+    maxQueueSize: 100
   },
 
   validation: true,
@@ -76,5 +76,5 @@ module.exports = {
   // Called after broker stopped.
   stopped(broker) {},
 
-  replCommands: null,
-}
+  replCommands: null
+};

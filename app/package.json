@@ -13,17 +13,13 @@
   ],
   "author": "",
   "devDependencies": {
-    "eslint": "^5.6.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.14.0",
+    "eslint": "^5.0.1",
     "moleculer-repl": "^0.5.0"
   },
   "dependencies": {
-    "js-base64": "^2.4.9",
-    "md5": "^2.2.1",
     "moleculer": "^0.13.0",
     "moleculer-web": "^0.8.0",
-    "request": "^2.88.0"
+    "nodemailer": "^4.6.8"
   },
   "engines": {
     "node": ">= 8.x.x"
