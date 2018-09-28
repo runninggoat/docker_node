@@ -36,11 +36,15 @@ module.exports = {
       },
       handler(ctx) {
         this.logger.info(ctx.params)
-        let mailTaskId = this.sendSecretKeyEmail(ctx.params.email, '1a2C3sk')
+        // let mailTaskId = this.sendSecretKeyEmail(ctx.params.email, '1a2C3sk')
+        let mailTaskId = this.fakeSendEmail(ctx.params.email, '1a2C3sk')
         this.logger.info(mailTaskId)
         if (!mailTaskId) {
           throw new RequestRejectedError('Sending E-mail service is not available.')
         }
+        this.broker.call('userdb.createUser', {
+          email: ctx.params.email,
+        })
         return this.generateMailTaskStatusResp(mailTaskId)
       },
     },
@@ -69,6 +73,18 @@ module.exports = {
    * Methods
    */
   methods: {
+    fakeSendEmail (destination, secretkey) {
+      const mailTaskId = this.generateJobId()
+      this.settings.mailTask[mailTaskId] = {
+        state: 0,
+        secretkey: secretkey,
+        destination: destination,
+      }
+      setTimeout(() => {
+        this.settings.mailTask[mailTaskId].state = 1
+      }, 1000)
+      return mailTaskId
+    },
     sendSecretKeyEmail(destination, secretkey) {
       let xsmtpapi = {
         to: [
@@ -88,7 +104,7 @@ module.exports = {
         apiKey: 'JEiT8t4cJmrFpSXE',
         from: '1501832474@qq.com',
         fromName: 'Unitylabs',
-        to: '1501832474@qq.com',
+        to: destination,
         // subject: 'send email from sendcloud',
         // html: 'let us have a try ' + ctx.params.email,
         // contentSummary: 'content summary',
@@ -98,15 +114,19 @@ module.exports = {
       // const url = 'http://api.sendcloud.net/apiv2/mail/send'
       const url = 'http://api.sendcloud.net/apiv2/mail/sendtemplate'
       const mailTaskId = this.generateJobId()
-      this.settings.mailTask[mailTaskId] = 0
+      this.settings.mailTask[mailTaskId] = {
+        state: 0,
+        secretkey: secretkey,
+        destination: destination,
+      }
       request.post({  url: url, form: requestData,  }, (error, response, body) => {
         if (!error && response.statusCode == 200) {
           console.log('sending email successfully')
           console.log(body)
-          this.settings.mailTask[mailTaskId] = 1
+          this.settings.mailTask[mailTaskId].state = 1
         } else {
           console.log(error)
-          this.settings.mailTask[mailTaskId] = 2
+          this.settings.mailTask[mailTaskId].state = 2
         }
       })
       return mailTaskId

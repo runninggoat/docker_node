@@ -22,6 +22,7 @@ module.exports = {
         aliases: {
           'POST user/create': 'user.create',
           'POST user/mailStatus': 'user.mailStatus',
+          'POST userdb/listUsers': 'userdb.listUsers',
         },
         // Use bodyparser module to parse POST request body, otherwise you cannot get params of POST
         bodyParsers: {
