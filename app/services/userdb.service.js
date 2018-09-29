@@ -1,6 +1,7 @@
 // const DbService = require('moleculer-db')
 // const mongo = require('mongodb')
 const MongoClient = require('mongodb').MongoClient
+const { RequestRejectedError } = require('moleculer').Errors
 
 module.exports = {
   name: 'userdb',
@@ -25,25 +26,58 @@ module.exports = {
    */
   actions: {
     /**
-     * Say a 'Hello'
-     *
-     * @returns
+     * Create a user
      */
     createUser: {
       params: {
-        email: {
-          type: 'string',
-        },
+        email: 'string',
+        password: 'string',
       },
       async handler(ctx) {
+        const now = new Date()
         let user = {
           email: ctx.params.email,
+        }
+        let existUsers = await this.findUsers(user)
+        this.logger.info(existUsers)
+        if (existUsers.length > 0) {
+          this.logger.error('User exist, cannot register again.')
+          throw new RequestRejectedError('User exist, cannot register again.')
+        }
+        user = {
+          email: ctx.params.email,
+          password: ctx.params.password,
+          created: now.getTime(),
           status: 0,
         }
         let resp = await this.addUser(user)
         return resp
       },
     },
+
+    /**
+     * Create a user
+     */
+    signInUser: {
+      params: {
+        email: 'string',
+        password: 'string',
+      },
+      async handler(ctx) {
+        const now = new Date()
+        let user = {
+          email: ctx.params.email,
+          password: ctx.params.password,
+        }
+        let existUsers = await this.findUsers(user)
+        if (existUsers.length < 1) {
+          this.logger.error('User does not exist.')
+          throw new RequestRejectedError('User does not exist.')
+        }
+        return existUsers
+      },
+    },
+
     listUsers: {
       async handler(ctx) {
         let result = []
@@ -63,10 +97,24 @@ module.exports = {
    * Methods
    */
   methods: {
+    findUsers (user) {
+      return new Promise((resolve, reject) => {
+        this.settings.collection.find(user).toArray((err, res) => {
+          if (err) {
+            this.logger.error(err)
+            reject(err)
+          }
+          resolve(res)
+        })
+      })
+    },
     addUser (user) {
       return new Promise((resolve, reject) => {
         this.settings.collection.insertOne(user, (err, res) => {
-          if (err) this.logger.error(err)
+          if (err) {
+            this.logger.error(err)
+            reject(err)
+          }
           this.logger.info('1 user inserted')
           resolve(res)
         })
@@ -75,7 +123,10 @@ module.exports = {
     listAllUsers () {
       return new Promise((resolve, reject) => {
         this.settings.collection.find({}).toArray((err, res) => {
-          if (err) this.logger.error(err)
+          if (err) {
+            this.logger.error(err)
+            reject(err)
+          }
           resolve(res)
         })
       })

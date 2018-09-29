@@ -22,8 +22,7 @@ module.exports = {
         mappingPolicy: 'restrict',
         aliases: {
           'POST user/create': 'user.create',
-          'POST user/mailStatus': 'user.mailStatus',
-          'POST user/listUsers': 'user.listUsers',
+          'POST user/signIn': 'user.signIn',
           'POST user/version': 'user.version',
         },
         // Use bodyparser module to parse POST request body, otherwise you cannot get params of POST
