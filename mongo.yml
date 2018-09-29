@@ -1,0 +1,19 @@
+version: '2'
+services:
+  node_mongo:
+    container_name: node_mongo
+    image: 'mongo'
+    restart: always
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: root
+    #   MONGO_INITDB_ROOT_PASSWORD: 12345678
+    volumes:
+      - './db:/data/db'
+    expose:
+      - '27017'
+    ports:
+      - '27017:27017'
+
+networks:
+  default:
+    driver: bridge
