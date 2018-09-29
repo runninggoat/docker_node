@@ -95,7 +95,7 @@ module.exports = {
    * Service started lifecycle event handler
    */
   started() {
-    const url = 'mongodb://node_mongo:27017/holly'
+    const url = process.env.MONGO_URL
     MongoClient.connect(url, (err, db) => {
         if (err) {
           this.logger.error('Cannot connect to Mongo.')
