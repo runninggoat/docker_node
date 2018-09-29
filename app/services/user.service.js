@@ -17,7 +17,9 @@ module.exports = {
   /**
    * Service dependencies
    */
-  dependencies: [],
+  dependencies: [
+    // 'userdb',
+  ],
 
   /**
    * Actions
@@ -34,15 +36,15 @@ module.exports = {
           type: 'string',
         },
       },
-      handler(ctx) {
+      async handler(ctx) {
         this.logger.info(ctx.params)
         // let mailTaskId = this.sendSecretKeyEmail(ctx.params.email, '1a2C3sk')
-        let mailTaskId = this.fakeSendEmail(ctx.params.email, '1a2C3sk')
+        let mailTaskId = await this.fakeSendEmail(ctx.params.email, '1a2C3sk')
         this.logger.info(mailTaskId)
         if (!mailTaskId) {
           throw new RequestRejectedError('Sending E-mail service is not available.')
         }
-        this.broker.call('userdb.createUser', {
+        await this.broker.call('userdb.createUser', {
           email: ctx.params.email,
         })
         return this.generateMailTaskStatusResp(mailTaskId)
@@ -64,6 +66,9 @@ module.exports = {
         }
         return this.generateMailTaskStatusResp(mailTaskId)
       },
+    },
+    async listUsers (ctx) {
+      return await this.broker.call('userdb.listUsers')
     },
     version (ctx) {
       return {

@@ -2,7 +2,7 @@
 
 // More info about options: https://moleculer.services/docs/0.13/broker.html#Broker-options
 module.exports = {
-  namespace: '',
+  namespace: 'HollyWood-Chain',
   nodeID: null,
 
   logger: true,
