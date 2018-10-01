@@ -9,9 +9,10 @@ services:
       - ./app:/usr/src/app
     ports:
       - '8888:8888'
+    # command: 'node app.js'
     command: 'npm run dev'
 
 networks:
   default:
     external:
-      name: docker_node_http_default
+      name: docker_node_default

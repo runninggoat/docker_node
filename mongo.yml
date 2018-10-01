@@ -16,4 +16,5 @@ services:
 
 networks:
   default:
-    driver: bridge
+    external:
+      name: docker_node_default
