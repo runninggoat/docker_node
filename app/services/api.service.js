@@ -1,5 +1,7 @@
 'use strict'
 
+const fs = require("fs")
+const path = require("path")
 const ApiGateway = require('moleculer-web')
 
 module.exports = {
@@ -11,6 +13,12 @@ module.exports = {
   settings: {
     // port: process.env.PORT || 3000,
     port: 8888,
+
+    // HTTPS server with certificate
+    https: {
+      key: fs.readFileSync(path.join(__dirname, '..', 'cert', 'key.pem')),
+      cert: fs.readFileSync(path.join(__dirname, '..', 'cert', 'cert.pem')),
+    },
 
     routes: [
       {
