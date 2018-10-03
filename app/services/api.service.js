@@ -1,7 +1,7 @@
 'use strict'
 
-const fs = require("fs")
-const path = require("path")
+const fs = require('fs')
+const path = require('path')
 const ApiGateway = require('moleculer-web')
 
 module.exports = {
