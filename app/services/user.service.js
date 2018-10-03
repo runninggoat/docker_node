@@ -75,6 +75,126 @@ module.exports = {
       },
     },
 
+    requestActivatingUser: {
+      params: {
+        uuid: {
+          type: 'string',
+          empty: false,
+        },
+      },
+      async handler (ctx) {
+        this.logger.info(ctx.options.parentCtx.params.req.headers.host) // get host (ip and port)
+        let user = {
+          uuid: ctx.params.uuid,
+        }
+        let existUsers = await this.broker.call('userdb.findUsers', {
+          user: user,
+        })
+        if (existUsers.length < 1) {
+          this.logger.error('User does not exist.')
+          throw new RequestRejectedError('User does not exist.')
+        }
+        let existUser = existUsers[0]
+
+        if (existUser.status === -1) {
+          this.logger.error('User is disabled.')
+          throw new RequestRejectedError('User is disabled.')
+        }
+
+        if (existUser.status !== 0) {
+          this.logger.error('User does not need to activate.')
+          throw new RequestRejectedError('User does not need to activate.')
+        }
+
+        let activation = {
+          uuid: ctx.params.uuid,
+        }
+        let existActivations = await this.broker.call('userdb.findActivations', {
+          activation: activation,
+        })
+        console.log(existActivations)
+        if (existActivations.length > 0) {
+          this.logger.error('You have requested activation.')
+          throw new RequestRejectedError('You have requested activation.')
+        }
+        // Generate 6 digits random number for account activation
+        let activationCode = Math.round(Math.random() * 1e6)
+        activationCode = activationCode.toString()
+        let resp = await this.broker.call('userdb.createActivation', {
+          uuid: ctx.params.uuid,
+          activationCode: activationCode,
+        })
+        // Send this code via email
+        // return the status of the email sending
+        return resp
+      },
+    },
+
+    activate: {
+      params: {
+        uuid: {
+          type: 'string',
+          empty: false,
+        },
+        activationCode: {
+          type: 'string',
+          empty: false,
+        },
+      },
+      async handler (ctx) {
+        this.logger.info(ctx.params)
+        let user = {
+          uuid: ctx.params.uuid,
+        }
+        let existUsers = await this.broker.call('userdb.findUsers', {
+          user: user,
+        })
+        if (existUsers.length < 1) {
+          this.logger.error('User does not exist.')
+          throw new RequestRejectedError('User does not exist.')
+        }
+        let existUser = existUsers[0]
+
+        if (existUser.status === -1) {
+          this.logger.error('User is disabled.')
+          throw new RequestRejectedError('User is disabled.')
+        }
+
+        if (existUser.status !== 0) {
+          this.logger.error('User does not need to activate.')
+          throw new RequestRejectedError('User does not need to activate.')
+        }
+
+        let activation = {
+          uuid: ctx.params.uuid,
+          activationCode: ctx.params.activationCode,
+        }
+        let existActivations = await this.broker.call('userdb.findActivations', {
+          activation: activation,
+        })
+        if (existActivations.length < 1) {
+          this.logger.error('You have not requested activation yet.')
+          throw new RequestRejectedError('You have not requested activation yet.')
+        }
+
+        let newActivation = JSON.parse(JSON.stringify(existActivations[0]))
+        delete newActivation['_id']
+        newActivation.status = 1
+        let resp = await this.broker.call('userdb.updateActivation', {
+          oldActivation: existActivations[0],
+          activation: newActivation,
+        })
+        let newUser = JSON.parse(JSON.stringify(existUser))
+        delete newUser['_id']
+        newUser.status = 1
+        resp = await this.broker.call('userdb.updateUser', {
+          oldUser: existUser,
+          user: newUser,
+        })
+        return resp
+      },
+    },
+
     /**
      * Sign in a user
      *
@@ -103,13 +223,24 @@ module.exports = {
         let existUsers = await this.broker.call('userdb.findUsers', {
           user: user,
         })
+
         if (existUsers.length < 1) {
           this.logger.error('User does not exist.')
           throw new RequestRejectedError('User does not exist.')
         }
+        let existUser = existUsers[0]
+
+        if (existUser.status === -1) {
+          this.logger.error('User is disabled.')
+          throw new RequestRejectedError('User is disabled.')
+        }
+
+        if (existUser.status === 0) {
+          this.logger.error('User is not activated.')
+          throw new RequestRejectedError('User is not activated.')
+        }
 
         // Get salt and validate with the hashed password
-        let existUser = existUsers[0]
         const pwhashAttemp = md5(ctx.params.password + existUser.salt)
         if (pwhashAttemp !== existUser.passwordhash) {
           this.logger.error('Password does not match.')

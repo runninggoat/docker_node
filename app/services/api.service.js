@@ -22,6 +22,8 @@ module.exports = {
         mappingPolicy: 'restrict',
         aliases: {
           'POST user/create': 'user.create',
+          'POST user/requestActivatingUser': 'user.requestActivatingUser',
+          'POST user/activate': 'user.activate',
           'POST user/signIn': 'user.signIn',
           'POST user/verify': 'user.verify',
           'POST user/version': 'user.version',

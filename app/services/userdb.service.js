@@ -12,7 +12,8 @@ module.exports = {
    */
   settings: {
     mongo: null,
-    collection: null,
+    userCollection: null,
+    activationCollection: null,
   },
 
   /**
@@ -42,10 +43,18 @@ module.exports = {
           passwordhash: ctx.params.passwordhash,
           salt: ctx.params.salt,
           created: ctx.params.created,
-          status: 0, // default status of user, 0 -- created, 1 -- verified, -1 -- diabled
+          status: 0, // default status of user, 0 -- created, 1 -- verified, -1 -- disabled
         }
-        let resp = await this.addUser(user)
-        return resp
+        return new Promise((resolve, reject) => {
+          this.settings.userCollection.insertOne(user, (err, res) => {
+            if (err) {
+              this.logger.error(err)
+              reject(err)
+            }
+            this.logger.info('1 user inserted')
+            resolve(res)
+          })
+        })
       },
     },
 
@@ -64,7 +73,90 @@ module.exports = {
       },
       handler (ctx) {
         return new Promise((resolve, reject) => {
-          this.settings.collection.find(ctx.params.user).toArray((err, res) => {
+          this.settings.userCollection.find(ctx.params.user).toArray((err, res) => {
+            if (err) {
+              this.logger.error(err)
+              reject(err)
+            }
+            resolve(res)
+          })
+        })
+      },
+    },
+
+    updateUser: {
+      params: {
+        oldUser: 'object',
+        user: 'object',
+      },
+      handler (ctx) {
+        let newvalues = {
+          $set: ctx.params.user,
+        }
+        return new Promise((resolve, reject) => {
+          this.settings.userCollection.updateOne(ctx.params.oldUser, newvalues, (err, res) => {
+            if (err) {
+              this.logger.error(err)
+              reject(err)
+            }
+            resolve(res)
+          })
+        })
+      },
+    },
+
+    createActivation: {
+      params: {
+        uuid: 'string',
+        activationCode: 'string',
+      },
+      handler (ctx) {
+        let activation = {
+          uuid: ctx.params.uuid,
+          activationCode: ctx.params.activationCode,
+          status: 0, // 0--created, 1--used(activated)
+        }
+        return new Promise((resolve, reject) => {
+          this.settings.activationCollection.insertOne(activation, (err, res) => {
+            if (err) {
+              this.logger.error(err)
+              reject(err)
+            }
+            this.logger.info('1 activation inserted')
+            resolve(res)
+          })
+        })
+      },
+    },
+
+    findActivations: {
+      params: {
+        activation: 'object',
+      },
+      handler (ctx) {
+        return new Promise((resolve, reject) => {
+          this.settings.activationCollection.find(ctx.params.activation).toArray((err, res) => {
+            if (err) {
+              this.logger.error(err)
+              reject(err)
+            }
+            resolve(res)
+          })
+        })
+      },
+    },
+
+    updateActivation: {
+      params: {
+        oldActivation: 'object',
+        activation: 'object',
+      },
+      handler (ctx) {
+        let newvalue = {
+          $set: ctx.params.activation,
+        }
+        return new Promise((resolve, reject) => {
+          this.settings.activationCollection.updateOne(ctx.params.oldActivation, newvalue, (err, res) => {
             if (err) {
               this.logger.error(err)
               reject(err)
@@ -85,21 +177,9 @@ module.exports = {
    * Methods
    */
   methods: {
-    addUser (user) {
-      return new Promise((resolve, reject) => {
-        this.settings.collection.insertOne(user, (err, res) => {
-          if (err) {
-            this.logger.error(err)
-            reject(err)
-          }
-          this.logger.info('1 user inserted')
-          resolve(res)
-        })
-      })
-    },
     listAllUsers () {
       return new Promise((resolve, reject) => {
-        this.settings.collection.find({}).toArray((err, res) => {
+        this.settings.userCollection.find({}).toArray((err, res) => {
           if (err) {
             this.logger.error(err)
             reject(err)
@@ -134,11 +214,19 @@ module.exports = {
         db = db.db('holly')
         db.createCollection('userdb', (e, r) => {
           if (err) {
-            this.logger.error('Cannot create collection.')
+            this.logger.error('Cannot create user collection.')
             throw err
           }
-          this.logger.info('Collection created!')
-          this.settings.collection = db.collection('userdb')
+          this.logger.info('User collection created!')
+          this.settings.userCollection = db.collection('userdb')
+        })
+        db.createCollection('activationdb', (e, r) => {
+          if (err) {
+            this.logger.error('Cannot create activation collection.')
+            throw err
+          }
+          this.logger.info('Activation collection created!')
+          this.settings.activationCollection = db.collection('activationdb')
         })
       },
     )
