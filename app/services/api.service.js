@@ -3,6 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const ApiGateway = require('moleculer-web')
+const multiparty = require('multiparty')
 
 module.exports = {
   name: 'api',
@@ -11,8 +12,12 @@ module.exports = {
 
   // More info about settings: https://moleculer.services/docs/0.13/moleculer-web.html
   settings: {
-    // port: process.env.PORT || 3000,
+    // Exposed port
     port: 8888,
+    // Exposed IP
+    ip: '0.0.0.0',
+    // Exposed path prefix
+    path: '/api',
 
     // HTTPS server with certificate
     https: {
@@ -22,24 +27,51 @@ module.exports = {
 
     routes: [
       {
-        path: '/api',
+        path: '/user',
         whitelist: [
           // Access to any actions in all services under "/api" URL
           '**',
         ],
         mappingPolicy: 'restrict',
         aliases: {
-          'POST user/create': 'user.create',
-          'POST user/requestActivatingUser': 'user.requestActivatingUser',
-          'POST user/activate': 'user.activate',
-          'POST user/signIn': 'user.signIn',
-          'POST user/verify': 'user.verify',
-          'POST user/version': 'user.version',
+          'POST /create': 'user.create',
+          'POST /requestActivatingUser': 'user.requestActivatingUser',
+          'POST /activate': 'user.activate',
+          'POST /signIn': 'user.signIn',
+          'POST /verify': 'user.verify',
+          'POST /version': 'user.version',
         },
         // Use bodyparser module to parse POST request body, otherwise you cannot get params of POST
         bodyParsers: {
           json: true,
           urlencoded: { extended: true },
+        },
+      },
+      {
+        path: '/stream',
+        whitelist: ['**'],
+        mappingPolicy: 'restrict',
+        aliases: {
+          'POST /upload' (req, res) {
+            const form = new multiparty.Form()
+            form.on('part', part => {
+              if (part.filename) {
+                console.log(part.name)
+                return this.broker.call('stream.upload', part, {
+                  meta: {
+                    filename: part.filename,
+                  },
+                }).then(filePath => {
+                  this.logger.info('File uploaded successfully!', filePath)
+                  this.sendRedirect(res, 'upload?file=' + part.filename)
+                }).catch(err => {
+                  this.logger.error('File upload error!', err)
+                  this.sendError(req, res, err)
+                })
+              }
+            })
+            form.parse(req)
+          },
         },
       },
     ],
