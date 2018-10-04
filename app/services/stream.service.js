@@ -24,9 +24,10 @@ module.exports = {
   actions: {
     async upload (ctx) {
       await this.mkdir(path.join(__dirname, '..', 'tmp'))
-      // console.log(ctx.options.parentCtx.params.req)
-      const s = fs.createWriteStream(path.join(__dirname, '..', 'tmp', ctx.meta.filename))
-      ctx.params.pipe(s)
+      // const filepath = path.join(__dirname, '..', 'tmp', ctx.meta.filename)
+      const filepath = path.join(__dirname, '..', 'tmp', ctx.meta.partname)
+      let fp = await this.receiveStream(ctx.params, filepath)
+      return fp
     },
   },
 
@@ -44,6 +45,15 @@ module.exports = {
         mkdirp(dir, err => {
           if (err) reject(err)
           resolve()
+        })
+      })
+    },
+    receiveStream (stream, filepath) {
+      return new Promise((resolve, reject) => {
+        const s = fs.createWriteStream(filepath)
+        stream.pipe(s)
+        s.on('close', ()=> {
+          resolve(filepath)
         })
       })
     },

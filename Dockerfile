@@ -3,8 +3,6 @@ FROM node:8
 # If you want this image to be product
 # ENV NODE_ENV=production
 
-# USER node
-
 WORKDIR /usr/src/app
 
 # set domestic npm package management source

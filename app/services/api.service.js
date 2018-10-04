@@ -50,22 +50,29 @@ module.exports = {
       {
         path: '/stream',
         whitelist: ['**'],
+        bodyParsers: {
+          json: false,
+          urlencoded: false,
+        },
         mappingPolicy: 'restrict',
         aliases: {
           'POST /upload' (req, res) {
             const form = new multiparty.Form()
             form.on('part', part => {
-              if (part.filename) {
-                console.log(part.name)
+              if (part.name && part.filename) {
+                this.logger.info('Part name: ', part.name)
+                this.logger.info('File name: ', part.filename)
                 return this.broker.call('stream.upload', part, {
                   meta: {
+                    partname: part.name,
                     filename: part.filename,
                   },
                 }).then(filePath => {
                   this.logger.info('File uploaded successfully!', filePath)
-                  this.sendRedirect(res, 'upload?file=' + part.filename)
+                  // this.sendRedirect(res, 'stream/upload?file=' + part.filename)
+                  res.end('File uploaded successfully!')
                 }).catch(err => {
-                  this.logger.error('File upload error!', err)
+                  this.logger.error('File upload error!!', err)
                   this.sendError(req, res, err)
                 })
               }
