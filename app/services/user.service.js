@@ -77,7 +77,7 @@ module.exports = {
 
     requestActivatingUser: {
       params: {
-        uuid: {
+        email: {
           type: 'string',
           empty: false,
         },
@@ -85,7 +85,7 @@ module.exports = {
       async handler (ctx) {
         this.logger.info(ctx.options.parentCtx.params.req.headers.host) // get host (ip and port)
         let user = {
-          uuid: ctx.params.uuid,
+          email: ctx.params.email,
         }
         let existUsers = await this.broker.call('userdb.findUsers', {
           user: user,
@@ -107,12 +107,11 @@ module.exports = {
         }
 
         let activation = {
-          uuid: ctx.params.uuid,
+          uuid: existUser.uuid,
         }
-        let existActivations = await this.broker.call('userdb.findActivations', {
+        let existActivations = await this.broker.call('activationdb.findActivations', {
           activation: activation,
         })
-        console.log(existActivations)
         if (existActivations.length > 0) {
           this.logger.error('You have requested activation.')
           throw new RequestRejectedError('You have requested activation.')
@@ -120,8 +119,9 @@ module.exports = {
         // Generate 6 digits random number for account activation
         let activationCode = Math.round(Math.random() * 1e6)
         activationCode = activationCode.toString()
-        let resp = await this.broker.call('userdb.createActivation', {
-          uuid: ctx.params.uuid,
+        let resp = await this.broker.call('activationdb.createActivation', {
+          uuid: existUser.uuid,
+          email: existUser.email,
           activationCode: activationCode,
         })
         // Send this code via email
@@ -132,7 +132,7 @@ module.exports = {
 
     activate: {
       params: {
-        uuid: {
+        email: {
           type: 'string',
           empty: false,
         },
@@ -144,7 +144,7 @@ module.exports = {
       async handler (ctx) {
         this.logger.info(ctx.params)
         let user = {
-          uuid: ctx.params.uuid,
+          email: ctx.params.email,
         }
         let existUsers = await this.broker.call('userdb.findUsers', {
           user: user,
@@ -166,21 +166,24 @@ module.exports = {
         }
 
         let activation = {
-          uuid: ctx.params.uuid,
-          activationCode: ctx.params.activationCode,
+          uuid: existUser.uuid,
         }
-        let existActivations = await this.broker.call('userdb.findActivations', {
+        let existActivations = await this.broker.call('activationdb.findActivations', {
           activation: activation,
         })
         if (existActivations.length < 1) {
           this.logger.error('You have not requested activation yet.')
           throw new RequestRejectedError('You have not requested activation yet.')
         }
+        if (existActivations[0].activationCode !== ctx.params.activationCode) {
+          this.logger.error('Incorrect activation code.')
+          throw new RequestRejectedError('Incorrect activation code.')
+        }
 
         let newActivation = JSON.parse(JSON.stringify(existActivations[0]))
         delete newActivation['_id']
         newActivation.status = 1
-        let resp = await this.broker.call('userdb.updateActivation', {
+        let resp = await this.broker.call('activationdb.updateActivation', {
           oldActivation: existActivations[0],
           activation: newActivation,
         })

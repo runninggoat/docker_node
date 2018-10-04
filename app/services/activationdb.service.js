@@ -1,9 +1,7 @@
-// const DbService = require('moleculer-db')
-// const mongo = require('mongodb')
 const MongoClient = require('mongodb').MongoClient
 
 module.exports = {
-  name: 'userdb',
+  name: 'activationdb',
 
   // mixins: [DbService],
 
@@ -12,7 +10,7 @@ module.exports = {
    */
   settings: {
     mongo: null,
-    userCollection: null,
+    activationCollection: null,
   },
 
   /**
@@ -24,55 +22,39 @@ module.exports = {
    * Actions
    */
   actions: {
-    /**
-     * Create a user
-     */
-    createUser: {
+    createActivation: {
       params: {
         uuid: 'string',
         email: 'string',
-        passwordhash: 'string',
-        salt: 'string',
-        created: 'number',
+        activationCode: 'string',
       },
-      async handler(ctx) {
-        user = {
+      handler (ctx) {
+        let activation = {
           uuid: ctx.params.uuid,
           email: ctx.params.email,
-          passwordhash: ctx.params.passwordhash,
-          salt: ctx.params.salt,
-          created: ctx.params.created,
-          status: 0, // default status of user, 0 -- created, 1 -- verified, -1 -- disabled
+          activationCode: ctx.params.activationCode,
+          status: 0, // 0--created, 1--used(activated)
         }
         return new Promise((resolve, reject) => {
-          this.settings.userCollection.insertOne(user, (err, res) => {
+          this.settings.activationCollection.insertOne(activation, (err, res) => {
             if (err) {
               this.logger.error(err)
               reject(err)
             }
-            this.logger.info('1 user inserted')
+            this.logger.info('1 activation inserted')
             resolve(res)
           })
         })
       },
     },
 
-    listUsers: {
-      async handler(ctx) {
-        let result = []
-        result = await this.listAllUsers()
-        this.logger.info(result)
-        return result
-      },
-    },
-
-    findUsers: {
+    findActivations: {
       params: {
-        user: 'object',
+        activation: 'object',
       },
       handler (ctx) {
         return new Promise((resolve, reject) => {
-          this.settings.userCollection.find(ctx.params.user).toArray((err, res) => {
+          this.settings.activationCollection.find(ctx.params.activation).toArray((err, res) => {
             if (err) {
               this.logger.error(err)
               reject(err)
@@ -83,17 +65,17 @@ module.exports = {
       },
     },
 
-    updateUser: {
+    updateActivation: {
       params: {
-        oldUser: 'object',
-        user: 'object',
+        oldActivation: 'object',
+        activation: 'object',
       },
       handler (ctx) {
-        let newvalues = {
-          $set: ctx.params.user,
+        let newvalue = {
+          $set: ctx.params.activation,
         }
         return new Promise((resolve, reject) => {
-          this.settings.userCollection.updateOne(ctx.params.oldUser, newvalues, (err, res) => {
+          this.settings.activationCollection.updateOne(ctx.params.oldActivation, newvalue, (err, res) => {
             if (err) {
               this.logger.error(err)
               reject(err)
@@ -114,17 +96,6 @@ module.exports = {
    * Methods
    */
   methods: {
-    listAllUsers () {
-      return new Promise((resolve, reject) => {
-        this.settings.userCollection.find({}).toArray((err, res) => {
-          if (err) {
-            this.logger.error(err)
-            reject(err)
-          }
-          resolve(res)
-        })
-      })
-    },
   },
 
   afterConnected() {
@@ -149,13 +120,13 @@ module.exports = {
         this.logger.info('Database created!')
         this.settings.mongo = db
         db = db.db('holly')
-        db.createCollection('userdb', (e, r) => {
+        db.createCollection('activationdb', (e, r) => {
           if (err) {
-            this.logger.error('Cannot create user collection.')
+            this.logger.error('Cannot create activation collection.')
             throw err
           }
-          this.logger.info('User collection created!')
-          this.settings.userCollection = db.collection('userdb')
+          this.logger.info('Activation collection created!')
+          this.settings.activationCollection = db.collection('activationdb')
         })
       },
     )

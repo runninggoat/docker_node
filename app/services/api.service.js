@@ -56,6 +56,7 @@ module.exports = {
         },
         mappingPolicy: 'restrict',
         aliases: {
+          'GET /file': 'stream.getFile',
           'POST /upload' (req, res) {
             const form = new multiparty.Form()
             form.on('part', part => {
